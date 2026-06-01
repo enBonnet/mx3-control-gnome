@@ -1,0 +1,147 @@
+.mx3-status-indicator {
+    padding: 0 8px;
+    spacing: 4px;
+    color: #ffffff;
+}
+
+.mx3-status-indicator:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.mx3-status-icon {
+    color: #4c9c4c;
+}
+
+.mx3-status-icon:rtl {
+    -st-icon-direction: rtl;
+}
+
+.mx3-status-label {
+    font-size: 12px;
+    color: #ffffff;
+}
+
+.mx3-status-popup {
+    background-color: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    spacing: 8px;
+}
+
+.mx3-status-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.mx3-status-value {
+    font-size: 12px;
+    color: #4c9c4c;
+}
+
+.mx3-gesture-info {
+    font-size: 11px;
+    color: #aaaaaa;
+    padding: 4px 0;
+}
+
+.mx3-separator {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin: 6px 0;
+}
+
+.mx3-toggle-btn {
+    background-color: #4c9c4c;
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-size: 12px;
+}
+
+.mx3-toggle-btn:hover {
+    background-color: #5cb85c;
+}
+
+.mx3-restart-btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-size: 12px;
+}
+
+.mx3-restart-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.mx3-error-label {
+    font-size: 11px;
+    color: #cc4444;
+}
+
+.mx3-error-value {
+    font-size: 11px;
+    color: #ff6666;
+}
+
+.mx3-prefs-scrollview {
+    background-color: rgba(30, 30, 30, 0.95);
+    border-radius: 8px;
+}
+
+.mx3-section-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    padding-bottom: 4px;
+}
+
+.mx3-setting-label {
+    font-size: 12px;
+    color: #cccccc;
+}
+
+.mx3-button-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #4c9c4c;
+}
+
+.mx3-dir-label {
+    font-size: 11px;
+    color: #aaaaaa;
+}
+
+.mx3-spin-entry,
+.mx3-text-entry,
+.mx3-key-entry {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.mx3-spin-entry:focus,
+.mx3-text-entry:focus,
+.mx3-key-entry:focus {
+    border-color: #4c9c4c;
+}
+
+.mx3-dropdown {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+.mx3-save-indicator {
+    font-size: 11px;
+    color: #4c9c4c;
+    padding: 4px 0;
+}
