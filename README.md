@@ -2,7 +2,12 @@
 
 GNOME Shell extension that adds an `MX3 Control` toggle to Quick Settings for the external `mx3` daemon used with Logitech MX Master 3 mice.
 
-The extension does not implement gesture handling itself. It starts, stops, restarts, and monitors the `mx3` daemon inside the current GNOME session.
+This extension requires the `mx3` CLI from `mx3-linux-driver`:
+
+- Project: <https://github.com/enBonnet/mx3-linux-driver>
+- Required command: `mx3`
+
+The extension does not implement gesture handling or device control itself. It only starts, stops, restarts, and monitors the `mx3` daemon inside the current GNOME session.
 
 ## Features
 
@@ -15,9 +20,16 @@ The extension does not implement gesture handling itself. It starts, stops, rest
 ## Requirements
 
 - GNOME Shell 45+
-- `mx3` installed and available in the user session
+- `mx3-linux-driver` installed: <https://github.com/enBonnet/mx3-linux-driver>
+- `mx3` installed and available in the user session `PATH`
 - `uinput` kernel module loaded
 - Permission to access `/dev/uinput`
+
+## Dependency
+
+`MX3 Control` depends on the separate `mx3-linux-driver` project.
+
+You must install `mx3-linux-driver` before this extension. Without it, the extension can load in GNOME Shell, but it cannot control anything and will show an error state because the `mx3` executable is missing.
 
 ## How It Works
 
@@ -29,6 +41,18 @@ The extension does not implement gesture handling itself. It starts, stops, rest
 If the extension shows an error, verify the CLI directly in a terminal first.
 
 ## Installation
+
+### Install the required CLI first
+
+Install `mx3-linux-driver` first:
+
+- <https://github.com/enBonnet/mx3-linux-driver>
+
+Confirm the `mx3` command is available before installing this extension:
+
+```bash
+mx3 --help
+```
 
 ### From source
 
@@ -67,7 +91,13 @@ You can open preferences from:
 
 ### `mx3` does not start
 
-Run the CLI directly:
+First confirm `mx3-linux-driver` is installed and the `mx3` command is available:
+
+```bash
+mx3 --help
+```
+
+Then run the CLI directly:
 
 ```bash
 mx3
