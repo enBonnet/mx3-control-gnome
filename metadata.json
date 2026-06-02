@@ -2,7 +2,7 @@
     "uuid": "mx3-control-gnome@enbonnet.github.com",
     "name": "MX3 Control",
     "description": "Quick Settings control for the mx3-linux-driver daemon for Logitech MX Master 3 mice.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "shell-version": ["49", "50"],
     "url": "https://github.com/enBonnet/mx3-control-gnome",
     "settings-schema": "org.gnome.shell.extensions.mx3-control-gnome",
