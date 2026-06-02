@@ -103,6 +103,103 @@ make install
 make clean
 ```
 
+## Testing
+
+### Recommended automated test on GNOME Shell 50+
+
+The most reliable local test flow on GNOME Shell `50` is a headless nested
+shell launched through `gnome-shell-test-tool`.
+
+Build the extension bundle first:
+
+```bash
+make pack
+```
+
+Run the automated headless test:
+
+```bash
+./run-headless-test.sh
+```
+
+Or with `make`:
+
+```bash
+make test-headless
+```
+
+This test does the following:
+
+- starts an isolated GNOME Shell test session with `dbus-run-session`
+- installs the packed extension zip into that session
+- opens Quick Settings
+- verifies that the `MX3 Control` tile exists
+
+Equivalent direct command:
+
+```bash
+gnome-shell-test-tool \
+  --wrap "dbus-run-session --" \
+  --headless \
+  --extension ".build/mx3-gnome@enbonnet.github.com.shell-extension.zip" \
+  test-shell.js
+```
+
+### Visual nested testing
+
+There is also a visual test helper:
+
+```bash
+./run-visual-test.sh
+```
+
+Or:
+
+```bash
+make test-visual
+```
+
+This uses `gnome-shell-test-tool --devkit`, which requires
+`/usr/lib/mutter-devkit` to exist on the system.
+
+If `mutter-devkit` is missing, the visual helper exits immediately with a
+clear error message and you should use the headless test instead.
+
+### GNOME Shell 50 notes
+
+On GNOME Shell `50`, older nested shell commands that appear in blog posts or
+older extension docs no longer work:
+
+- `gnome-shell --nested` is not available
+- `gnome-shell --x11` is not available
+- `gnome-shell --replace` is not a valid nested test flow here
+
+For this project, `gnome-shell-test-tool` is the working approach.
+
+### Packaging note for tests
+
+The extension imports runtime files from `./src/...`, so the packed zip must
+preserve the `src/` directory. The current `Makefile` already does this.
+
+If the package is built incorrectly, GNOME Shell will fail to load the
+extension and report missing files such as:
+
+```text
+ImportError: Unable to load file .../src/mx3-manager.js
+```
+
+### Expected warnings in the test environment
+
+The headless test environment may still print warnings related to:
+
+- `org.freedesktop.systemd1`
+- `gvfs`
+- `xdg-desktop-portal`
+- missing GNOME background images
+- authentication agent registration
+
+Those warnings did not prevent the extension test from passing in this repo.
+
 ## Project Files
 
 ```text
