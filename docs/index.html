@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MX3 Control for GNOME</title>
+  <meta name="description" content="MX3 Control for GNOME documentation for the MX3 Quick Settings extension.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="hero">
+      <div class="eyebrow">mx3-gnome.enbonnet.com</div>
+      <h1>MX3 Control for GNOME</h1>
+      <p class="lede">A GNOME Shell extension that adds a Quick Settings control for the external <code>mx3</code> daemon. It does not implement gesture handling itself. It controls the driver from your desktop session.</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#install">Install flow</a>
+        <a class="button" href="https://mx3.enbonnet.com">Driver docs</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="card-grid two-up">
+        <article class="card accent">
+          <h2>What this project does</h2>
+          <p>It adds an <strong>MX3 Control</strong> tile to GNOME Quick Settings and lets you start, stop, restart, and monitor the <code>mx3</code> background process from the GNOME Shell UI.</p>
+        </article>
+        <article class="card">
+          <h2>Dependency</h2>
+          <p>This extension requires the <code>mx3</code> executable from <a href="https://mx3.enbonnet.com">MX3 Linux Driver</a>. Without that command, the extension loads but cannot control anything.</p>
+        </article>
+      </section>
+
+      <section class="card-grid two-up">
+        <article class="card">
+          <h2>Project split</h2>
+          <ul>
+            <li><strong>Driver</strong>: reads the mouse, classifies gestures, injects keys</li>
+            <li><strong>GNOME extension</strong>: provides desktop controls for that driver</li>
+          </ul>
+        </article>
+        <article class="card accent-soft">
+          <h2>Use them together</h2>
+          <p>Install the driver first, confirm <code>mx3 --help</code> works in the same session where GNOME Shell runs, then install this extension to manage the daemon visually.</p>
+          <a class="text-link" href="https://mx3.enbonnet.com">Read the driver docs</a>
+        </article>
+      </section>
+
+      <section class="section" id="install">
+        <div class="section-heading">
+          <div class="eyebrow">Setup</div>
+          <h2>Install flow</h2>
+        </div>
+        <div class="card">
+          <pre><code># 1. Install the driver first
+mx3 --help
+
+# 2. Install the extension
+make install
+
+# 3. Enable it
+gnome-extensions enable mx3-control-gnome@enbonnet.github.com</code></pre>
+          <p class="muted">If the extension is not listed immediately, log out and back in once so GNOME Shell refreshes its extension list.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div class="eyebrow">Architecture</div>
+          <h2>How it works</h2>
+        </div>
+        <div class="timeline">
+          <div class="step"><span>1</span><p>On enable, the extension creates an <code>Mx3Manager</code> and refreshes status.</p></div>
+          <div class="step"><span>2</span><p>The manager resolves the <code>mx3</code> executable from <code>PATH</code> or common install paths.</p></div>
+          <div class="step"><span>3</span><p>When started from Quick Settings, it launches <code>mx3 --daemon --pid-file=/tmp/mx3.pid</code>.</p></div>
+          <div class="step"><span>4</span><p>It reads <code>/tmp/mx3.pid</code> and checks <code>/proc/&lt;pid&gt;</code> to determine whether the daemon is still alive.</p></div>
+          <div class="step"><span>5</span><p>The Quick Settings tile updates to show Running, Stopped, or Error, with restart and preferences actions.</p></div>
+        </div>
+      </section>
+
+      <section class="card-grid three-up">
+        <article class="card">
+          <h2>Session UX</h2>
+          <p>Single-click toggling for start and stop, plus submenu actions for restart and preferences.</p>
+        </article>
+        <article class="card">
+          <h2>Status model</h2>
+          <p>The extension polls every 3 seconds and surfaces the last startup or runtime error in the menu.</p>
+        </article>
+        <article class="card">
+          <h2>Preferences</h2>
+          <p>Current preferences expose one setting: automatically start the daemon when the extension is enabled.</p>
+        </article>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div class="eyebrow">Driver relationship</div>
+          <h2>How this differs from the driver</h2>
+        </div>
+        <div class="card-grid two-up">
+          <article class="card">
+            <h3>The driver owns</h3>
+            <p>Device detection, gesture classification, configuration parsing, and virtual keyboard injection through <code>/dev/uinput</code>.</p>
+          </article>
+          <article class="card">
+            <h3>This extension owns</h3>
+            <p>GNOME Shell integration only: Quick Settings UI, preferences, daemon launch, PID tracking, and error presentation.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div class="eyebrow">Best practice</div>
+          <h2>Recommended combined setup</h2>
+        </div>
+        <div class="card">
+          <ol>
+            <li>Install and validate the driver first.</li>
+            <li>Make sure the <code>mx3</code> binary is visible in the GNOME session.</li>
+            <li>Install and enable the extension.</li>
+            <li>Use Quick Settings for session-level control and use the driver config for gesture mapping.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div class="eyebrow">Troubleshooting</div>
+          <h2>Common failure points</h2>
+        </div>
+        <div class="card-grid two-up">
+          <article class="card">
+            <h3><code>mx3</code> missing</h3>
+            <p>If the tile reports an error immediately, confirm <code>mx3 --help</code> works in a terminal inside the same desktop session.</p>
+          </article>
+          <article class="card">
+            <h3>Permission problems</h3>
+            <p>If the driver cannot open <code>/dev/uinput</code>, fix the driver installation and host permissions first. The extension cannot solve system device access issues.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div class="eyebrow">Testing</div>
+          <h2>Verification commands</h2>
+        </div>
+        <div class="card">
+          <pre><code>make pack
+./run-headless-test.sh
+
+# optional visual test
+./run-visual-test.sh</code></pre>
+          <p class="muted">The documented working approach for recent GNOME Shell versions in this repository is <code>gnome-shell-test-tool</code>.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
