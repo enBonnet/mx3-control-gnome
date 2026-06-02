@@ -57,8 +57,8 @@ mx3 --help
 ### From source
 
 ```bash
-git clone https://github.com/enbonnet/mx3-gnome
-cd mx3-gnome
+git clone https://github.com/enbonnet/mx3-control-gnome
+cd mx3-control-gnome
 make install
 ```
 
@@ -68,7 +68,7 @@ make install
 ### Enable the extension
 
 ```bash
-gnome-extensions enable mx3-gnome@enbonnet.github.com
+gnome-extensions enable mx3-control-gnome@enbonnet.github.com
 ```
 
 If the extension is not listed right away, log out and back in once so the
@@ -171,7 +171,7 @@ Equivalent direct command:
 gnome-shell-test-tool \
   --wrap "dbus-run-session --" \
   --headless \
-  --extension ".build/mx3-gnome@enbonnet.github.com.shell-extension.zip" \
+  --extension ".build/mx3-control-gnome@enbonnet.github.com.shell-extension.zip" \
   test-shell.js
 ```
 
@@ -233,12 +233,12 @@ Those warnings did not prevent the extension test from passing in this repo.
 ## Project Files
 
 ```text
-mx3-gnome/
+mx3-control-gnome/
 ├── extension.js
 ├── metadata.json
 ├── prefs.js
 ├── resources/
-│   └── org.gnome.shell.extensions.mx3-gnome.gschema.xml
+│   └── org.gnome.shell.extensions.mx3-control-gnome.gschema.xml
 └── src/
     ├── mx3-manager.js
     ├── status-indicator.js

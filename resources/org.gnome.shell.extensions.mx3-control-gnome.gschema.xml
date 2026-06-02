@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="mx3-gnome">
-    <schema id="org.gnome.shell.extensions.mx3-gnome" path="/org/gnome/shell/extensions/mx3-gnome/">
+<schemalist gettext-domain="mx3-control-gnome">
+    <schema id="org.gnome.shell.extensions.mx3-control-gnome" path="/org/gnome/shell/extensions/mx3-control-gnome/">
         <key name="autostart" type="b">
             <default>false</default>
             <description>Automatically start mx3 daemon on login</description>
