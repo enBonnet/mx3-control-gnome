@@ -1,0 +1,23 @@
+# Build artifacts
+.build/
+
+# Compiled schema files
+schemas/gschemas.compiled
+
+# GNOME extension installation directory
+~/.local/share/gnome-shell/extensions/
+
+# Editor and IDE
+*~
+*.swp
+*.swo
+*#
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
