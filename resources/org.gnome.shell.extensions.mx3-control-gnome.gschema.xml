@@ -5,5 +5,9 @@
             <default>false</default>
             <description>Automatically start mx3 daemon on login</description>
         </key>
+        <key name="stop-on-disable" type="b">
+            <default>false</default>
+            <description>Stop the mx3 daemon when the extension is disabled</description>
+        </key>
     </schema>
 </schemalist>

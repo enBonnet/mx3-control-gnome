@@ -6,5 +6,8 @@
     "shell-version": ["49", "50"],
     "url": "https://github.com/enBonnet/mx3-control-gnome",
     "settings-schema": "org.gnome.shell.extensions.mx3-control-gnome",
-    "gettext-domain": "mx3-control-gnome"
+    "gettext-domain": "mx3-control-gnome",
+    "donations": {
+        "github": "enBonnet"
+    }
 }

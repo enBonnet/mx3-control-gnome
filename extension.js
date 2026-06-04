@@ -8,7 +8,7 @@ export default class Mx3ControlExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
         this._manager = new Mx3Manager();
-        this._manager.refresh();
+        this._manager.refresh().catch(e => console.error("[mx3-control] initial refresh failed:", e));
         this._manager.watch();
 
         this._indicator = new Mx3Indicator(this, this._manager);
@@ -19,6 +19,9 @@ export default class Mx3ControlExtension extends Extension {
     }
 
     disable() {
+        if (this._settings?.get_boolean("stop-on-disable"))
+            this._manager?.stop().catch(e => console.error("[mx3-control] stop on disable failed:", e));
+
         this._indicator?.destroy();
         this._indicator = null;
 

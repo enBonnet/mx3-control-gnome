@@ -27,6 +27,13 @@ export default class Mx3ControlPreferences extends ExtensionPreferences {
         settings.bind("autostart", autostartRow, "active", Gio.SettingsBindFlags.DEFAULT);
         daemonGroup.add(autostartRow);
 
+        const stopOnDisableRow = new Adw.SwitchRow({
+            title: "Stop daemon on disable",
+            subtitle: "Stop mx3 when the extension is disabled.",
+        });
+        settings.bind("stop-on-disable", stopOnDisableRow, "active", Gio.SettingsBindFlags.DEFAULT);
+        daemonGroup.add(stopOnDisableRow);
+
         const aboutGroup = new Adw.PreferencesGroup({
             title: "About",
         });

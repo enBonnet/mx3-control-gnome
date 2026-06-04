@@ -15,6 +15,7 @@ export class Mx3Manager {
         this._watchId = null;
         this._startupTimeoutId = null;
         this._statusCallbacks = new Set();
+        this._cancellable = new Gio.Cancellable();
     }
 
     get status() {
@@ -39,21 +40,28 @@ export class Mx3Manager {
             this._emitStatusChanged();
     }
 
-    _readPidFile() {
+    async _readPidFile() {
+        const file = Gio.File.new_for_path(MX3_PID_FILE);
         try {
-            const [, contents] = GLib.file_get_contents(MX3_PID_FILE);
+            const [, contents] = await file.load_contents_async(this._cancellable);
             const text = new TextDecoder().decode(contents);
             const pid = Number.parseInt(text.trim(), 10);
-            return Number.isNaN(pid) ? null : pid;
-        } catch (_) {
+            if (Number.isNaN(pid) || pid <= 0)
+                return null;
+            return pid;
+        } catch (error) {
+            if (error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                return null;
             return null;
         }
     }
 
     _isProcessRunning(pid) {
         try {
-            const procPath = Gio.File.new_for_path(`/proc/${pid}`);
-            return procPath.query_exists(null);
+            const commFile = Gio.File.new_for_path(`/proc/${pid}/comm`);
+            const [, contents] = commFile.load_contents(this._cancellable);
+            const name = new TextDecoder().decode(contents).trim();
+            return name === MX3_COMMAND;
         } catch (_) {
             return false;
         }
@@ -75,8 +83,8 @@ export class Mx3Manager {
         return fallbackPaths.find(path => Gio.File.new_for_path(path).query_exists(null)) ?? null;
     }
 
-    refresh() {
-        const pid = this._readPidFile();
+    async refresh() {
+        const pid = await this._readPidFile();
         const running = pid !== null && this._isProcessRunning(pid);
         this._setStatus({
             running,
@@ -99,32 +107,21 @@ export class Mx3Manager {
             if (!executable)
                 throw new Error(`Could not find '${MX3_COMMAND}' in PATH`);
 
-            const process = Gio.Subprocess.new(
+            Gio.Subprocess.new(
                 [executable, "--daemon", `--pid-file=${MX3_PID_FILE}`],
-                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
+                Gio.SubprocessFlags.NONE
             );
-
-            process.communicate_utf8_async(null, null, (subprocess, result) => {
-                try {
-                    const [, stdout, stderr] = subprocess.communicate_utf8_finish(result);
-                    if (!subprocess.get_successful()) {
-                        const message = stderr?.trim() || stdout?.trim() || `mx3 exited with status ${subprocess.get_exit_status()}`;
-                        this._setStatus({...this._status, lastError: message});
-                    }
-                } catch (error) {
-                    this._setStatus({...this._status, lastError: String(error)});
-                }
-            });
 
             this._startupTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, STARTUP_TIMEOUT_MS, () => {
                 this._startupTimeoutId = null;
-                this.refresh();
-                if (!this._status.running && !this._status.lastError) {
-                    this._setStatus({
-                        ...this._status,
-                        lastError: `mx3 did not create ${MX3_PID_FILE}. Try '${executable} --daemon --pid-file=${MX3_PID_FILE}' in the same session.`,
-                    });
-                }
+                this.refresh().then(() => {
+                    if (!this._status.running && !this._status.lastError) {
+                        this._setStatus({
+                            ...this._status,
+                            lastError: `mx3 did not create ${MX3_PID_FILE}. Try '${executable} --daemon --pid-file=${MX3_PID_FILE}' in the same session.`,
+                        });
+                    }
+                }).catch(e => console.error("[mx3-control] startup timeout refresh failed:", e));
                 return GLib.SOURCE_REMOVE;
             });
 
@@ -136,30 +133,41 @@ export class Mx3Manager {
         }
     }
 
-    stop() {
+    async stop() {
         if (!this._status.running || this._status.pid === null)
             return true;
 
-        try {
-            if (this._startupTimeoutId !== null) {
-                GLib.source_remove(this._startupTimeoutId);
-                this._startupTimeoutId = null;
-            }
+        if (this._startupTimeoutId !== null) {
+            GLib.source_remove(this._startupTimeoutId);
+            this._startupTimeoutId = null;
+        }
 
-            Gio.Subprocess.new(
+        try {
+            const proc = Gio.Subprocess.new(
                 ["kill", String(this._status.pid)],
                 Gio.SubprocessFlags.NONE
-            ).wait(null);
-            this.refresh();
-            return true;
+            );
+            await new Promise((resolve, reject) => {
+                proc.wait_async(this._cancellable, (obj, result) => {
+                    try {
+                        obj.wait_finish(result);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            });
         } catch (error) {
-            this._setStatus({...this._status, lastError: String(error)});
-            return false;
+            if (!error.message.includes("No such process"))
+                this._setStatus({...this._status, lastError: String(error)});
         }
+
+        await this.refresh();
+        return true;
     }
 
-    restart() {
-        this.stop();
+    async restart() {
+        await this.stop();
         return this.start();
     }
 
@@ -168,12 +176,14 @@ export class Mx3Manager {
             return;
 
         this._watchId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 3, () => {
-            this.refresh();
+            this.refresh().catch(e => console.error("[mx3-control] watch refresh failed:", e));
             return GLib.SOURCE_CONTINUE;
         });
     }
 
     destroy() {
+        this._cancellable.cancel();
+
         if (this._startupTimeoutId !== null) {
             GLib.source_remove(this._startupTimeoutId);
             this._startupTimeoutId = null;
