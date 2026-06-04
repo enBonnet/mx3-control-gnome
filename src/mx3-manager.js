@@ -56,10 +56,10 @@ export class Mx3Manager {
         }
     }
 
-    _isProcessRunning(pid) {
+    async _isProcessRunning(pid) {
         try {
             const commFile = Gio.File.new_for_path(`/proc/${pid}/comm`);
-            const [, contents] = commFile.load_contents(this._cancellable);
+            const [, contents] = await commFile.load_contents_async(this._cancellable);
             const name = new TextDecoder().decode(contents).trim();
             return name === MX3_COMMAND;
         } catch (_) {
@@ -85,7 +85,7 @@ export class Mx3Manager {
 
     async refresh() {
         const pid = await this._readPidFile();
-        const running = pid !== null && this._isProcessRunning(pid);
+        const running = pid !== null && await this._isProcessRunning(pid);
         this._setStatus({
             running,
             pid,
