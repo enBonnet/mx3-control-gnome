@@ -1,9 +1,11 @@
 #!/bin/bash
 # Quick reload for mx3-control-gnome extension
+set -e
 EXT=mx3-control-gnome@enbonnet.github.com
 DIR=~/.local/share/gnome-shell/extensions/$EXT
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-make install -C ~/Projects/personal/mx3-control-gnome
+make install -C "$SCRIPT_DIR"
 gnome-extensions disable $EXT 2>/dev/null
 gnome-extensions enable $EXT
 

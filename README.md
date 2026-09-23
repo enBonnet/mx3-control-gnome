@@ -19,7 +19,7 @@ The extension does not implement gesture handling or device control itself. It o
 
 ## Requirements
 
-- GNOME Shell 45+
+- GNOME Shell 49 or 50
 - `mx3-linux-driver` installed: <https://github.com/enBonnet/mx3-linux-driver>
 - `mx3` installed and available in the user session `PATH`
 - `uinput` kernel module loaded
@@ -33,8 +33,8 @@ You must install `mx3-linux-driver` before this extension. Without it, the exten
 
 ## How It Works
 
-- The extension starts `mx3 --daemon --pid-file=/tmp/mx3.pid`
-- It reads `/tmp/mx3.pid` to detect whether the daemon is running
+- The extension starts `mx3 --daemon --pid-file=$XDG_RUNTIME_DIR/mx3.pid`
+- It reads `$XDG_RUNTIME_DIR/mx3.pid` to detect whether the daemon is running
 - It checks `/proc/<pid>` to verify the process still exists
 - It exposes daemon status through GNOME Quick Settings
 
@@ -119,8 +119,8 @@ Then log out and log back in so GNOME Shell gets the updated group membership.
 ### Check daemon state manually
 
 ```bash
-cat /tmp/mx3.pid
-ls /proc/$(cat /tmp/mx3.pid)
+cat "$XDG_RUNTIME_DIR/mx3.pid"
+ls /proc/$(cat "$XDG_RUNTIME_DIR/mx3.pid")
 ```
 
 If `/proc/<pid>` does not exist, the daemon started and exited immediately.

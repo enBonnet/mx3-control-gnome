@@ -8,24 +8,26 @@ BUNDLE = $(BUILD_DIR)/$(EXTENSION_NAME).shell-extension.zip
 build:
 	@echo "Building mx3-control-gnome extension..."
 	mkdir -p $(BUILD_DIR)
-	mkdir -p $(INSTALL_DIR)/schemas $(INSTALL_DIR)/icons $(INSTALL_DIR)/styles $(INSTALL_DIR)/src
+	mkdir -p $(INSTALL_DIR)/schemas $(INSTALL_DIR)/icons $(INSTALL_DIR)/src
 	cp extension.js prefs.js $(INSTALL_DIR)/
 	cp src/mx3-manager.js src/status-indicator.js src/types.js $(INSTALL_DIR)/src/
 	cp resources/icons/*.svg $(INSTALL_DIR)/icons/
-	cp styles/*.css $(INSTALL_DIR)/styles/
 	cp resources/org.gnome.shell.extensions.mx3-control-gnome.gschema.xml $(INSTALL_DIR)/schemas/
 	cp metadata.json $(INSTALL_DIR)/
 	glib-compile-schemas $(INSTALL_DIR)/schemas/
 
 pack:
 	@echo "Packing mx3-control-gnome extension..."
-	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR) $(BUILD_DIR)/schemas
 	rm -f $(BUNDLE)
+	@# gnome-extensions pack on this GNOME omits the compiled schema; compile
+	@# it ourselves and append it, or getSettings() fails after install.
+	glib-compile-schemas --targetdir=$(BUILD_DIR)/schemas resources/
 	gnome-extensions pack . --force --out-dir $(BUILD_DIR) \
 		--extra-source=src \
 		--extra-source=resources/icons \
-		--extra-source=styles \
 		--schema=resources/org.gnome.shell.extensions.mx3-control-gnome.gschema.xml
+	cd $(BUILD_DIR) && zip -q $(notdir $(BUNDLE)) schemas/gschemas.compiled
 
 install: pack
 	@echo "Installing mx3-control-gnome extension..."

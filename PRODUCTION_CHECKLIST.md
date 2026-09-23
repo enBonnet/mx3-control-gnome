@@ -9,8 +9,8 @@ This checklist captures the agreed product direction for the extension and the w
 - [x] Move the UI from the top bar to GNOME Quick Settings
 - [x] Use a `QuickMenuToggle` instead of a top-panel indicator
 - [x] Make primary click toggle the daemon directly
+- [x] Show a top-bar state icon only while the daemon is running (SystemIndicator icon bound to the tile's checked state — intentional, so the checklist line below was reworded)
 - [x] Keep submenu actions for restart and preferences
-- [x] Do not show an extra Quick Settings header indicator icon
 - [x] Plan support for GNOME Shell `45`, `46`, `47`, `48`, `49`, and `50`
 
 ## Architecture Changes
@@ -18,7 +18,7 @@ This checklist captures the agreed product direction for the extension and the w
 - [x] Replace `PanelMenu.Button` usage with Quick Settings integration in `extension.js`
 - [x] Register the extension through `Main.panel.statusArea.quickSettings.addExternalIndicator(...)`
 - [x] Replace `src/status-indicator.js` with a Quick Settings implementation
-- [x] Create a `QuickSettings.SystemIndicator` wrapper without a visible indicator icon
+- [x] Create a `QuickSettings.SystemIndicator` wrapper whose top-bar icon shows only while the daemon runs
 - [x] Create a `QuickSettings.QuickMenuToggle` tile for `MX3 Control`
 - [x] Wire tile click to start or stop the daemon directly
 - [x] Add submenu actions for `Restart` and `Preferences`
@@ -44,7 +44,7 @@ This checklist captures the agreed product direction for the extension and the w
 
 - [x] Update `metadata.json` name to `MX3 Control`
 - [x] Update the metadata description to match the actual shipped behavior
-- [x] Keep `shell-version` aligned with the intended support matrix: `45` to `50`
+- [x] Keep `shell-version` aligned with the verified support matrix: `49` and `50`
 - [ ] Decide whether to remove manual `version` for GNOME Extensions submission
 
 ## Documentation
@@ -58,17 +58,17 @@ This checklist captures the agreed product direction for the extension and the w
 
 ## Packaging And Release Hygiene
 
-- [ ] Add a `LICENSE` file
+- [x] Add a `LICENSE` file
 - [ ] Add a release packaging target to `Makefile`
-- [ ] Ensure the release artifact contains only runtime files
-- [ ] Ensure the schema file is included in the shipped extension package
+- [x] Ensure the release artifact contains only runtime files (unused `styles/` removed)
+- [x] Ensure the schema file is included in the shipped extension package — including `gschemas.compiled`, which `gnome-extensions pack` on this GNOME omits (Makefile `pack` appends it; verified with `unzip -l`)
 - [ ] Verify install/build instructions match the final package layout
 
 ## Asset Cleanup
 
 - [ ] Remove unused custom icons if the Quick Settings tile does not use them
-- [ ] Remove unused CSS if the new implementation does not require it
-- [ ] Remove any dead code left from the top-bar indicator implementation
+- [x] Remove unused CSS if the new implementation does not require it (`styles/status-indicator.css` deleted; nothing loaded or referenced it)
+- [x] Remove any dead code left from the top-bar indicator implementation
 - [ ] Remove unused schema keys if related features are not shipped
 
 ## Tile UX Requirements

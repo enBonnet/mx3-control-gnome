@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="mx3-control-gnome">
+<schemalist>
     <schema id="org.gnome.shell.extensions.mx3-control-gnome" path="/org/gnome/shell/extensions/mx3-control-gnome/">
         <key name="autostart" type="b">
             <default>false</default>

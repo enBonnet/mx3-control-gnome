@@ -14,6 +14,7 @@ export class Mx3Manager {
         };
         this._watchId = null;
         this._startupTimeoutId = null;
+        this._pendingStart = false;
         this._statusCallbacks = new Set();
         this._cancellable = new Gio.Cancellable();
     }
@@ -94,7 +95,7 @@ export class Mx3Manager {
     }
 
     start() {
-        if (this._status.running)
+        if (this._status.running || this._pendingStart)
             return true;
 
         try {
@@ -112,8 +113,13 @@ export class Mx3Manager {
                 Gio.SubprocessFlags.NONE
             );
 
+            // From here until the pid file shows up, stop() must treat the
+            // daemon as running even though refresh() still reports false.
+            this._pendingStart = true;
+
             this._startupTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, STARTUP_TIMEOUT_MS, () => {
                 this._startupTimeoutId = null;
+                this._pendingStart = false;
                 this.refresh().then(() => {
                     if (!this._status.running && !this._status.lastError) {
                         this._setStatus({
@@ -128,42 +134,75 @@ export class Mx3Manager {
             this._setStatus({...this._status, lastError: null});
             return true;
         } catch (error) {
+            this._pendingStart = false;
             this._setStatus({...this._status, lastError: String(error)});
             return false;
         }
     }
 
     async stop() {
-        if (!this._status.running || this._status.pid === null)
+        const wasStarting = this._pendingStart;
+        if (!this._status.running && !wasStarting)
             return true;
+        this._pendingStart = false;
 
         if (this._startupTimeoutId !== null) {
             GLib.source_remove(this._startupTimeoutId);
             this._startupTimeoutId = null;
         }
 
-        try {
-            const proc = Gio.Subprocess.new(
-                ["kill", String(this._status.pid)],
-                Gio.SubprocessFlags.NONE
-            );
-            await new Promise((resolve, reject) => {
-                proc.wait_async(this._cancellable, (obj, result) => {
-                    try {
-                        obj.wait_finish(result);
-                        resolve();
-                    } catch (e) {
-                        reject(e);
-                    }
+        // A just-started daemon may not have written the pid file yet; give it
+        // a moment so stop can target the real process instead of no-oping.
+        let pid = this._status.pid;
+        if (pid === null && wasStarting) {
+            for (let i = 0; i < 10 && pid === null; i++) {
+                await this._sleep(100);
+                pid = await this._readPidFile();
+            }
+        }
+
+        if (pid !== null) {
+            try {
+                const proc = Gio.Subprocess.new(
+                    ["kill", String(pid)],
+                    Gio.SubprocessFlags.NONE
+                );
+                await new Promise((resolve, reject) => {
+                    proc.wait_async(this._cancellable, (obj, result) => {
+                        try {
+                            obj.wait_finish(result);
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
                 });
-            });
-        } catch (error) {
-            if (!error.message.includes("No such process"))
+                // kill(1) exiting non-zero just means nobody to signal; wait
+                // for mx3 itself to exit so callers see a settled state.
+                await this._waitForExit(pid, 2000);
+            } catch (error) {
+                if (error.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                    return true;   // extension shutting down; nothing to report
                 this._setStatus({...this._status, lastError: String(error)});
+            }
         }
 
         await this.refresh();
         return true;
+    }
+
+    _sleep(ms) {
+        return new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms,
+            () => (resolve(), GLib.SOURCE_REMOVE)));
+    }
+
+    async _waitForExit(pid, timeoutMs) {
+        const deadline = GLib.get_monotonic_time() + timeoutMs * 1000;
+        while (await this._isProcessRunning(pid)) {
+            if (GLib.get_monotonic_time() >= deadline)
+                return;
+            await this._sleep(100);
+        }
     }
 
     async restart() {
