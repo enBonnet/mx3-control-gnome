@@ -1,6 +1,11 @@
 import GLib from "gi://GLib";
 import Gio from "gi://Gio";
 
+// load_contents_async is one of the few GI methods GJS does not
+// auto-promisify — without this, every read throws and the manager
+// permanently reports "Stopped".
+Gio._promisify(Gio.File.prototype, "load_contents_async", "load_contents_finish");
+
 import {MX3_COMMAND, MX3_PID_FILE} from "./types.js";
 
 const STARTUP_TIMEOUT_MS = 1500;
@@ -44,7 +49,7 @@ export class Mx3Manager {
     async _readPidFile() {
         const file = Gio.File.new_for_path(MX3_PID_FILE);
         try {
-            const [, contents] = await file.load_contents_async(this._cancellable);
+            const [contents] = await file.load_contents_async(this._cancellable);
             const text = new TextDecoder().decode(contents);
             const pid = Number.parseInt(text.trim(), 10);
             if (Number.isNaN(pid) || pid <= 0)
@@ -60,7 +65,7 @@ export class Mx3Manager {
     async _isProcessRunning(pid) {
         try {
             const commFile = Gio.File.new_for_path(`/proc/${pid}/comm`);
-            const [, contents] = await commFile.load_contents_async(this._cancellable);
+            const [contents] = await commFile.load_contents_async(this._cancellable);
             const name = new TextDecoder().decode(contents).trim();
             return name === MX3_COMMAND;
         } catch (_) {

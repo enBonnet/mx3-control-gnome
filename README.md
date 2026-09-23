@@ -9,6 +9,12 @@ This extension requires the `mx3` CLI from `mx3-linux-driver`:
 
 The extension does not implement gesture handling or device control itself. It only starts, stops, restarts, and monitors the `mx3` daemon inside the current GNOME session.
 
+## Screenshots
+
+| Stopped | Running | Error |
+|---|---|---|
+| ![Stopped](screenshots/qs-stopped.png) | ![Running](screenshots/qs-running.png) | ![Error](screenshots/qs-error.png) |
+
 ## Features
 
 - Quick Settings tile for `mx3`
