@@ -45,7 +45,7 @@ This checklist captures the agreed product direction for the extension and the w
 - [x] Update `metadata.json` name to `MX3 Control`
 - [x] Update the metadata description to match the actual shipped behavior
 - [x] Keep `shell-version` aligned with the verified support matrix: `49` and `50`
-- [ ] Decide whether to remove manual `version` for GNOME Extensions submission
+- [x] Keep the manual `version` in `metadata.json` — extensions.gnome.org requires it to be a positive integer (set to `1` for the first EGO upload; raise it with every update zip)
 
 ## Documentation
 
