@@ -1,23 +1,40 @@
+import Gio from "gi://Gio";
 import GObject from "gi://GObject";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as PopupMenu from "resource:///org/gnome/shell/ui/popupMenu.js";
 import * as QuickSettings from "resource:///org/gnome/shell/ui/quickSettings.js";
 
+// Extension dirs are not in the St icon theme search path, so custom icon
+// names never resolve — load the shipped SVGs directly instead.
+function loadIcons(extension) {
+    const iconsDir = extension.dir.get_child("icons");
+    const gicon = name =>
+        Gio.Icon.new_for_string(iconsDir.get_child(`${name}.svg`).get_path());
+    return {
+        on: gicon("mx3-on-symbolic"),
+        off: gicon("mx3-off-symbolic"),
+        error: gicon("mx3-error-symbolic"),
+    };
+}
+
 const Mx3QuickToggle = GObject.registerClass(
 class Mx3QuickToggle extends QuickSettings.QuickMenuToggle {
     constructor(extension, manager) {
+        const icons = loadIcons(extension);
+
         super({
             title: "MX3 Control",
             subtitle: "Stopped",
-            iconName: "mx3-off-symbolic",
+            gicon: icons.off,
             toggleMode: true,
         });
 
         this._extension = extension;
         this._manager = manager;
+        this._icons = icons;
 
         this.menu.setHeader(
-            "mx3-off-symbolic",
+            icons.off,
             "MX3 Control",
             "Quick Settings control for the mx3 daemon"
         );
@@ -80,11 +97,11 @@ class Mx3QuickToggle extends QuickSettings.QuickMenuToggle {
 
         this.checked = running;
         this.subtitle = running ? "Running" : hasError ? "Error" : "Stopped";
-        this.iconName = hasError
-            ? "mx3-error-symbolic"
+        this.gicon = hasError
+            ? this._icons.error
             : running
-                ? "mx3-on-symbolic"
-                : "mx3-off-symbolic";
+                ? this._icons.on
+                : this._icons.off;
 
         this._startStopItem.label.text = running ? "Stop" : "Start";
         this._statusItem.label.text = `Status: ${this.subtitle}`;
@@ -95,8 +112,12 @@ class Mx3QuickToggle extends QuickSettings.QuickMenuToggle {
     }
 
     destroy() {
-        this._disconnectStatusChanged?.();
+        this._disconnectStatusChanged();
         this._disconnectStatusChanged = null;
+
+        // The menu actor is parented into the QuickSettings overlay, not into
+        // this widget, so it must be destroyed explicitly to avoid leaking it.
+        this.menu.destroy();
 
         // connectObject registrations are auto-disconnected by SignalTracker
         // when the 'destroy' GObject signal fires on this object.
@@ -109,25 +130,26 @@ class Mx3Indicator extends QuickSettings.SystemIndicator {
     constructor(extension, manager) {
         super();
 
+        this._icons = loadIcons(extension);
         this._toggle = new Mx3QuickToggle(extension, manager);
         this.quickSettingsItems.push(this._toggle);
 
         this._indicator = this._addIndicator();
-        this._indicator.iconName = "mx3-off-symbolic";
+        this._indicator.gicon = this._icons.off;
         this._toggle.bind_property("checked", this._indicator, "visible",
             GObject.BindingFlags.SYNC_CREATE);
 
         this._statusCallback = manager.connectStatusChanged(status => {
-            this._indicator.iconName = status.lastError
-                ? "mx3-error-symbolic"
+            this._indicator.gicon = status.lastError
+                ? this._icons.error
                 : status.running
-                    ? "mx3-on-symbolic"
-                    : "mx3-off-symbolic";
+                    ? this._icons.on
+                    : this._icons.off;
         });
     }
 
     destroy() {
-        this._statusCallback?.();
+        this._statusCallback();
         this._statusCallback = null;
 
         this.quickSettingsItems.forEach(item => item.destroy());

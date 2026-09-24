@@ -19,6 +19,7 @@ export class Mx3Manager {
         };
         this._watchId = null;
         this._startupTimeoutId = null;
+        this._sleepIds = new Set();
         this._pendingStart = false;
         this._statusCallbacks = new Set();
         this._cancellable = new Gio.Cancellable();
@@ -55,9 +56,7 @@ export class Mx3Manager {
             if (Number.isNaN(pid) || pid <= 0)
                 return null;
             return pid;
-        } catch (error) {
-            if (error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
-                return null;
+        } catch (_) {
             return null;
         }
     }
@@ -105,7 +104,7 @@ export class Mx3Manager {
 
         try {
             if (this._startupTimeoutId !== null) {
-                GLib.source_remove(this._startupTimeoutId);
+                GLib.Source.remove(this._startupTimeoutId);
                 this._startupTimeoutId = null;
             }
 
@@ -152,7 +151,7 @@ export class Mx3Manager {
         this._pendingStart = false;
 
         if (this._startupTimeoutId !== null) {
-            GLib.source_remove(this._startupTimeoutId);
+            GLib.Source.remove(this._startupTimeoutId);
             this._startupTimeoutId = null;
         }
 
@@ -186,7 +185,7 @@ export class Mx3Manager {
                 // for mx3 itself to exit so callers see a settled state.
                 await this._waitForExit(pid, 2000);
             } catch (error) {
-                if (error.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                if (error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
                     return true;   // extension shutting down; nothing to report
                 this._setStatus({...this._status, lastError: String(error)});
             }
@@ -197,8 +196,14 @@ export class Mx3Manager {
     }
 
     _sleep(ms) {
-        return new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms,
-            () => (resolve(), GLib.SOURCE_REMOVE)));
+        return new Promise(resolve => {
+            const id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
+                this._sleepIds.delete(id);
+                resolve();
+                return GLib.SOURCE_REMOVE;
+            });
+            this._sleepIds.add(id);
+        });
     }
 
     async _waitForExit(pid, timeoutMs) {
@@ -229,14 +234,18 @@ export class Mx3Manager {
         this._cancellable.cancel();
 
         if (this._startupTimeoutId !== null) {
-            GLib.source_remove(this._startupTimeoutId);
+            GLib.Source.remove(this._startupTimeoutId);
             this._startupTimeoutId = null;
         }
 
         if (this._watchId !== null) {
-            GLib.source_remove(this._watchId);
+            GLib.Source.remove(this._watchId);
             this._watchId = null;
         }
+
+        for (const id of this._sleepIds)
+            GLib.Source.remove(id);
+        this._sleepIds.clear();
 
         this._statusCallbacks.clear();
     }

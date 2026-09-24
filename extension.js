@@ -19,13 +19,13 @@ export default class Mx3ControlExtension extends Extension {
     }
 
     disable() {
-        if (this._settings?.get_boolean("stop-on-disable"))
-            this._manager?.stop().catch(e => console.error("[mx3-control] stop on disable failed:", e));
+        if (this._settings.get_boolean("stop-on-disable"))
+            this._manager.stop().catch(e => console.error("[mx3-control] stop on disable failed:", e));
 
-        this._indicator?.destroy();
+        this._indicator.destroy();
         this._indicator = null;
 
-        this._manager?.destroy();
+        this._manager.destroy();
         this._manager = null;
         this._settings = null;
     }
