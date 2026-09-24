@@ -59,9 +59,9 @@ This checklist captures the agreed product direction for the extension and the w
 ## Packaging And Release Hygiene
 
 - [x] Add a `LICENSE` file
-- [ ] Add a release packaging target to `Makefile`
+- [x] Add a release packaging target to `Makefile` (`make pack` produces the clean EGO bundle; `make pack-test` adds the compiled schema for local runs only)
 - [x] Ensure the release artifact contains only runtime files (unused `styles/` removed)
-- [x] Ensure the schema file is included in the shipped extension package — including `gschemas.compiled`, which `gnome-extensions pack` on this GNOME omits (Makefile `pack` appends it; verified with `unzip -l`)
+- [x] Ensure the schema XML is included and `gschemas.compiled` is NOT shipped (EGO-P-006: extensions.gnome.org compiles schemas itself at install; verified with `unzip -l`)
 - [ ] Verify install/build instructions match the final package layout
 
 ## Asset Cleanup

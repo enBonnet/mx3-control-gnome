@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-BUNDLE="$SCRIPT_DIR/.build/mx3-control-gnome@enbonnet.github.com.shell-extension.zip"
+BUNDLE="$SCRIPT_DIR/.build/mx3-control-gnome@enbonnet.github.com.test.zip"
 DEVKIT_BIN="/usr/lib/mutter-devkit"
 
 if [[ ! -x "$DEVKIT_BIN" ]]; then
@@ -14,7 +14,7 @@ if [[ ! -x "$DEVKIT_BIN" ]]; then
 fi
 
 if [[ ! -f "$BUNDLE" ]]; then
-    make -C "$SCRIPT_DIR" pack
+    make -C "$SCRIPT_DIR" pack-test
 fi
 
 exec gnome-shell-test-tool \
